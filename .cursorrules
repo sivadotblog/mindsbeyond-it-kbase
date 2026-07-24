@@ -1,0 +1,334 @@
+# Test-Driven Development (TDD) Rules
+
+## TDD Workflow
+
+Follow the Red-Green-Refactor cycle strictly:
+
+1. **Red**: Write a failing test first — never write production code without a failing test
+2. **Green**: Write the minimum code to make the test pass
+3. **Refactor**: Clean up the code while keeping tests green
+
+## Test Case Planning
+
+Before implementing any tests, list ALL test cases as comments first:
+
+```typescript
+describe('functionName', () => {
+  // Test cases to implement:
+  // - should return expected result for valid input (happy path)
+  // - should handle empty input
+  // - should handle null/undefined input
+  // - should throw error for invalid input type
+  // - should handle boundary values (min/max)
+  // - should handle special characters
+  // ... then implement each test
+});
+```
+
+## Testing Rules
+
+### Test Runner & Configuration
+- Test runner: Vitest (preferred) or Jest
+- Test file naming: `{filename}.test.ts` placed next to source file
+- Test structure: `describe` block per function, `it` blocks per scenario
+
+### Coverage Requirements
+- Statements: 100%
+- Branches: 100%
+- Functions: 100%
+- Lines: 100%
+
+### Test Categories (Always Include)
+1. **Happy path**: Expected behavior with valid inputs
+2. **Edge cases**: Empty values, single items, special characters
+3. **Error cases**: Invalid inputs, missing required fields, type mismatches
+4. **Boundary values**: Min/max values, zero, negative numbers, large inputs
+
+### Test Isolation
+- Mock ALL external dependencies (HTTP, database, file system)
+- Never perform real I/O in tests
+- Each test must be independent and runnable in isolation
+- Reset mocks/state between tests using `beforeEach`/`afterEach`
+
+### Test Data
+- Use factory functions for test data, not inline object literals
+- Include TypeScript types for all mock data
+- Example:
+  ```typescript
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+  }
+
+  const createMockUser = (overrides: Partial<User> = {}): User => ({
+    id: 'user-123',
+    name: 'Test User',
+    email: 'test@example.com',
+    ...overrides,
+  });
+  ```
+
+### Assertions
+- Each test must have exactly ONE assertion focus (one `expect` per `it` block)
+- Use descriptive test names that explain the expected behavior
+- Format: `it('should [expected behavior] when [condition]')`
+
+### Test File Structure
+```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { functionUnderTest } from './module';
+
+// Mock external dependencies at top
+vi.mock('./external-dependency');
+
+// Factory functions for test data
+const createMockInput = (overrides = {}) => ({ ...defaults, ...overrides });
+
+describe('functionUnderTest', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // Test cases to implement:
+  // - should ...
+  // - should ...
+
+  describe('happy path', () => {
+    it('should return expected result for valid input', () => {
+      // Arrange
+      const input = createMockInput();
+      
+      // Act
+      const result = functionUnderTest(input);
+      
+      // Assert
+      expect(result).toEqual(expectedValue);
+    });
+  });
+
+  describe('edge cases', () => {
+    // ...
+  });
+
+  describe('error cases', () => {
+    // ...
+  });
+});
+```
+
+## When Writing New Features
+
+1. Discuss and document the expected behavior first
+2. Write the test file with all test cases listed as comments
+3. Implement tests one at a time (Red)
+4. Write minimal production code to pass (Green)
+5. Refactor while maintaining green tests
+6. Repeat until all test cases are implemented
+
+## When Fixing Bugs
+
+1. Write a failing test that reproduces the bug first
+2. Verify the test fails for the right reason
+3. Fix the bug with minimal code changes
+4. Verify the test passes
+5. Add regression tests if needed
+
+---
+
+# Python Testing Rules (pytest)
+
+## Test Runner & Configuration
+- Test runner: pytest
+- Test file naming: `test_{filename}.py` or `{filename}_test.py` in `tests/` directory
+- Config file: `pyproject.toml` or `pytest.ini`
+- Test structure: Classes prefixed with `Test`, functions prefixed with `test_`
+
+## Coverage Requirements
+```bash
+pytest --cov=src --cov-report=term-missing --cov-fail-under=100
+```
+
+## Test File Structure
+```python
+"""Tests for module_name."""
+import pytest
+from unittest.mock import Mock, patch, MagicMock
+from typing import Any
+
+from src.module_name import function_under_test
+
+
+# --- Factory Functions ---
+def create_mock_user(overrides: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Create a mock user with optional overrides."""
+    defaults = {
+        "id": "user-123",
+        "name": "Test User",
+        "email": "test@example.com",
+    }
+    return {**defaults, **(overrides or {})}
+
+
+# --- Fixtures ---
+@pytest.fixture
+def mock_database():
+    """Provide a mocked database connection."""
+    with patch("src.module_name.MongoClient") as mock:
+        yield mock
+
+
+@pytest.fixture
+def sample_user() -> dict[str, Any]:
+    """Provide a sample user for testing."""
+    return create_mock_user()
+
+
+class TestFunctionUnderTest:
+    """Tests for function_under_test."""
+
+    # Test cases to implement:
+    # - should return expected result for valid input (happy path)
+    # - should handle empty input
+    # - should handle None input
+    # - should raise ValueError for invalid input
+    # - should handle boundary values
+
+    class TestHappyPath:
+        """Happy path tests."""
+
+        def test_returns_expected_result_for_valid_input(self, sample_user):
+            """Should return expected result when given valid input."""
+            # Arrange
+            expected = {"status": "success"}
+
+            # Act
+            result = function_under_test(sample_user)
+
+            # Assert
+            assert result == expected
+
+    class TestEdgeCases:
+        """Edge case tests."""
+
+        def test_handles_empty_input(self):
+            """Should handle empty input gracefully."""
+            result = function_under_test({})
+            assert result is None
+
+        def test_handles_none_input(self):
+            """Should handle None input gracefully."""
+            result = function_under_test(None)
+            assert result is None
+
+    class TestErrorCases:
+        """Error case tests."""
+
+        def test_raises_value_error_for_invalid_type(self):
+            """Should raise ValueError when input type is invalid."""
+            with pytest.raises(ValueError, match="Invalid input"):
+                function_under_test("not a dict")
+
+    class TestWithMocks:
+        """Tests requiring mocked dependencies."""
+
+        def test_calls_database_with_correct_params(self, mock_database, sample_user):
+            """Should call database with correct parameters."""
+            # Arrange
+            mock_database.return_value.find_one.return_value = sample_user
+
+            # Act
+            function_under_test(sample_user)
+
+            # Assert
+            mock_database.return_value.find_one.assert_called_once()
+```
+
+## Python-Specific Mocking Patterns
+
+### Mock External HTTP Calls
+```python
+@patch("src.module.requests.get")
+def test_api_call(mock_get):
+    """Should handle API response correctly."""
+    mock_get.return_value.json.return_value = {"data": "value"}
+    mock_get.return_value.status_code = 200
+    
+    result = fetch_data()
+    
+    assert result == {"data": "value"}
+```
+
+### Mock MongoDB/PyMongo
+```python
+@patch("src.module.MongoClient")
+def test_database_insert(mock_client):
+    """Should insert document into database."""
+    mock_collection = Mock()
+    mock_client.return_value.__getitem__.return_value.__getitem__.return_value = mock_collection
+    
+    insert_document({"key": "value"})
+    
+    mock_collection.insert_one.assert_called_once_with({"key": "value"})
+```
+
+### Mock File System
+```python
+@patch("builtins.open", new_callable=mock_open, read_data="file content")
+def test_file_read(mock_file):
+    """Should read file content correctly."""
+    result = read_file("path/to/file.txt")
+    
+    assert result == "file content"
+    mock_file.assert_called_once_with("path/to/file.txt", "r")
+```
+
+### Mock Environment Variables
+```python
+@patch.dict(os.environ, {"API_KEY": "test-key", "DEBUG": "true"})
+def test_uses_env_variables():
+    """Should use environment variables correctly."""
+    result = get_config()
+    
+    assert result["api_key"] == "test-key"
+```
+
+## Pytest Markers
+```python
+@pytest.mark.slow
+def test_slow_operation():
+    """Mark slow tests to optionally skip."""
+    pass
+
+@pytest.mark.integration
+def test_integration():
+    """Mark integration tests to run separately."""
+    pass
+
+@pytest.mark.parametrize("input,expected", [
+    ("valid", True),
+    ("", False),
+    (None, False),
+])
+def test_validation(input, expected):
+    """Should validate input correctly."""
+    assert validate(input) == expected
+```
+
+## Required Dev Dependencies
+```toml
+# pyproject.toml
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=src --cov-report=term-missing"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+]
+```

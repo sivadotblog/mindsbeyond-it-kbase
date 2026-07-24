@@ -1,0 +1,21 @@
+# -----------------------------------------------------------------------------
+# Example Terraform Variables File
+# -----------------------------------------------------------------------------
+# Copy this file to terraform.tfvars and fill in your values.
+# Do NOT commit terraform.tfvars to version control!
+# -----------------------------------------------------------------------------
+
+# MongoDB Atlas API Keys (from Atlas > Access Manager > API Keys)
+atlas_public_key  = "your_atlas_public_key"
+atlas_private_key = "your_atlas_private_key"
+
+# MongoDB Atlas Project and Cluster
+atlas_project_id   = "your_project_id"
+atlas_cluster_name = "your_cluster_name"
+
+# Database Configuration (optional - defaults shown)
+database_name   = "kbase"
+collection_name = "content"
+
+# Embedding Model (optional - default shown)
+embedding_model = "voyage-context-4"
