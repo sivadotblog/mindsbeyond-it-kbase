@@ -1,14 +1,14 @@
-# How To: Strider Copilot Custom Tool Plugins
+# How To: Nexus RAG Knowledgebase Tooling
 
-**Document ID**: KB-0029  
+**Document ID**: KB-0043  
 **Category**: Tutorial  
-**Domain**: Enterprise AI  
+**Domain**: Agent Frameworks  
 **Framework**: Diátaxis Framework  
 
 ---
 
 ## Overview
-This document outlines procedure steps for **Strider Copilot Custom Tool Plugins** in the internal Mindsbeyond Data Platform environment.
+This document outlines procedure steps for **Nexus RAG Knowledgebase Tooling** in the internal Mindsbeyond Data Platform environment.
 
 > ⚠️ **Network Prerequisite**: This procedure requires direct access through the Azure Private Endpoint. Connection attempts via standard public routing will be rejected.
 
@@ -16,7 +16,7 @@ This document outlines procedure steps for **Strider Copilot Custom Tool Plugins
 
 ## Prerequisites
 Ensure the following operational prerequisites are satisfied before executing this workflow:
-1. **Tooling & Access**: Enterprise Credentials for Enterprise AI, Active Network Access.
+1. **Tooling & Access**: Enterprise Credentials for Agent Frameworks, Active Network Access.
 2. **Environment Tags**: Set `MINDSBEYOND_SOURCE_ID="SRC-99402"` and `MINDSBEYOND_COST_CENTER="CC-8812"`.
 3. **IAM Permissions**: Active Service Account permissions for database access and cloud infrastructure API calls.
 
@@ -33,14 +33,14 @@ export MINDSBEYOND_SOURCE_ID="SRC-99402"
 export MINDSBEYOND_COST_CENTER="CC-8812"
 
 # Execute operational setup
-strider-plugin build --sourceID=SRC-99402 --env=prod
+nexus-agent register-tool --sourceID=SRC-99402 --env=prod
 ```
 
 ### Step 2: Primary Operation Execution
 Execute the core operation workflow:
 
 ```bash
-strider-plugin test --config=/etc/mindsbeyond/config.json
+nexus-agent test-tool --config=/etc/mindsbeyond/config.json
 ```
 
 ---
@@ -50,7 +50,7 @@ strider-plugin test --config=/etc/mindsbeyond/config.json
 Confirm successful completion by running the following validation command:
 
 ```bash
-echo 'Verifying Strider Copilot Custom Tool Plugins...' && strider-plugin test
+echo 'Verifying Nexus RAG Knowledgebase Tooling...' && nexus-agent test-tool
 ```
 
 Expected outcome: Command completes without errors and returns expected resource state.
@@ -60,7 +60,7 @@ Expected outcome: Command completes without errors and returns expected resource
 ## Troubleshooting
 
 ### Common Error
-**Error Message**: `Error: EnterpriseAIExecutionFailed`
+**Error Message**: `Error: AgentFrameworksExecutionFailed`
 
 **Resolution**: Verify credentials and ensure target host is accessible via private endpoint.
 
@@ -74,7 +74,7 @@ Expected outcome: Command completes without errors and returns expected resource
 ## Related Documentation
 - [MongoDB Atlas Administration Guide](https://docs.atlas.mongodb.com/)
 - [Mindsbeyond Data Platform Wiki](https://wiki.mindsbeyond.com/data-platform)
-- [Strider Co-Pilot Documentation](https://strider.mindsbeyond.com/docs)
+- [Nexus Co-Pilot Documentation](https://nexus.mindsbeyond.com/docs)
 
 ---
 

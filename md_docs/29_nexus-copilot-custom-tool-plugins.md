@@ -1,14 +1,14 @@
-# How To: Integrating Azure AI Foundry Models with Strider Co-Pilot
+# How To: Nexus Copilot Custom Tool Plugins
 
-**Document ID**: KB-0009  
-**Category**: How-To Guide  
+**Document ID**: KB-0029  
+**Category**: Tutorial  
 **Domain**: Enterprise AI  
 **Framework**: Diátaxis Framework  
 
 ---
 
 ## Overview
-This document outlines procedure steps for **Integrating Azure AI Foundry Models with Strider Co-Pilot** in the internal Mindsbeyond Data Platform environment.
+This document outlines procedure steps for **Nexus Copilot Custom Tool Plugins** in the internal Mindsbeyond Data Platform environment.
 
 > ⚠️ **Network Prerequisite**: This procedure requires direct access through the Azure Private Endpoint. Connection attempts via standard public routing will be rejected.
 
@@ -16,7 +16,7 @@ This document outlines procedure steps for **Integrating Azure AI Foundry Models
 
 ## Prerequisites
 Ensure the following operational prerequisites are satisfied before executing this workflow:
-1. **Tooling & Access**: Azure AI Studio deployment, API Endpoint URL.
+1. **Tooling & Access**: Enterprise Credentials for Enterprise AI, Active Network Access.
 2. **Environment Tags**: Set `MINDSBEYOND_SOURCE_ID="SRC-99402"` and `MINDSBEYOND_COST_CENTER="CC-8812"`.
 3. **IAM Permissions**: Active Service Account permissions for database access and cloud infrastructure API calls.
 
@@ -33,14 +33,14 @@ export MINDSBEYOND_SOURCE_ID="SRC-99402"
 export MINDSBEYOND_COST_CENTER="CC-8812"
 
 # Execute operational setup
-az ai service account create --name ai-strider-foundry --resource-group rg-ai --kind AIStudio --location eastus2
+nexus-plugin build --sourceID=SRC-99402 --env=prod
 ```
 
 ### Step 2: Primary Operation Execution
 Execute the core operation workflow:
 
 ```bash
-curl -X POST $AZURE_FOUNDRY_ENDPOINT/deployments/voyage-context-4/embeddings?api-version=2024-02-01 -H 'api-key: '$AZURE_AI_KEY -H 'Content-Type: application/json' -d '{"input":"test search"}'
+nexus-plugin test --config=/etc/mindsbeyond/config.json
 ```
 
 ---
@@ -50,7 +50,7 @@ curl -X POST $AZURE_FOUNDRY_ENDPOINT/deployments/voyage-context-4/embeddings?api
 Confirm successful completion by running the following validation command:
 
 ```bash
-python test_strider_copilot.py --endpoint=$AZURE_FOUNDRY_ENDPOINT
+echo 'Verifying Nexus Copilot Custom Tool Plugins...' && nexus-plugin test
 ```
 
 Expected outcome: Command completes without errors and returns expected resource state.
@@ -60,9 +60,9 @@ Expected outcome: Command completes without errors and returns expected resource
 ## Troubleshooting
 
 ### Common Error
-**Error Message**: `DeploymentNotFound`
+**Error Message**: `Error: EnterpriseAIExecutionFailed`
 
-**Resolution**: Verify deployment name matches model name in Azure AI Studio.
+**Resolution**: Verify credentials and ensure target host is accessible via private endpoint.
 
 ### Additional Support
 - **Slack Channel**: #data-platform-support
@@ -74,7 +74,7 @@ Expected outcome: Command completes without errors and returns expected resource
 ## Related Documentation
 - [MongoDB Atlas Administration Guide](https://docs.atlas.mongodb.com/)
 - [Mindsbeyond Data Platform Wiki](https://wiki.mindsbeyond.com/data-platform)
-- [Strider Co-Pilot Documentation](https://strider.mindsbeyond.com/docs)
+- [Nexus Co-Pilot Documentation](https://nexus.mindsbeyond.com/docs)
 
 ---
 

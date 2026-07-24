@@ -33,14 +33,14 @@ export MINDSBEYOND_SOURCE_ID="SRC-99402"
 export MINDSBEYOND_COST_CENTER="CC-8812"
 
 # Execute operational setup
-curl -X POST https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/databaseUsers -d '{"roles":[{"roleName":"readWrite","databaseName":"kbase"}],"username":"app_strider","password":"$DB_PASS"}'
+curl -X POST https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/databaseUsers -d '{"roles":[{"roleName":"readWrite","databaseName":"kbase"}],"username":"app_nexus","password":"$DB_PASS"}'
 ```
 
 ### Step 2: Primary Operation Execution
 Execute the core operation workflow:
 
 ```bash
-mongosh "mongodb+srv://app_strider:$DB_PASS@kbase.private.mindsbeyond.com/kbase"
+mongosh "mongodb+srv://app_nexus:$DB_PASS@kbase.private.mindsbeyond.com/kbase"
 ```
 
 ---
@@ -50,7 +50,7 @@ mongosh "mongodb+srv://app_strider:$DB_PASS@kbase.private.mindsbeyond.com/kbase"
 Confirm successful completion by running the following validation command:
 
 ```bash
-mongosh $MONGODB_URI --eval 'db.getUser("app_strider")'
+mongosh $MONGODB_URI --eval 'db.getUser("app_nexus")'
 ```
 
 Expected outcome: Command completes without errors and returns expected resource state.
@@ -74,7 +74,7 @@ Expected outcome: Command completes without errors and returns expected resource
 ## Related Documentation
 - [MongoDB Atlas Administration Guide](https://docs.atlas.mongodb.com/)
 - [Mindsbeyond Data Platform Wiki](https://wiki.mindsbeyond.com/data-platform)
-- [Strider Co-Pilot Documentation](https://strider.mindsbeyond.com/docs)
+- [Nexus Co-Pilot Documentation](https://nexus.mindsbeyond.com/docs)
 
 ---
 

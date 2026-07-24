@@ -74,7 +74,7 @@ Expected outcome: Command completes without errors and returns expected resource
 ## Related Documentation
 - [MongoDB Atlas Administration Guide](https://docs.atlas.mongodb.com/)
 - [Mindsbeyond Data Platform Wiki](https://wiki.mindsbeyond.com/data-platform)
-- [Strider Co-Pilot Documentation](https://strider.mindsbeyond.com/docs)
+- [Nexus Co-Pilot Documentation](https://nexus.mindsbeyond.com/docs)
 
 ---
 

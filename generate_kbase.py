@@ -109,13 +109,13 @@ ARTICLES_DATA = [
         "sol": "Install apoc-full plugin in /plugins directory of Neo4j node."
     },
     {
-        "title": "Integrating Azure AI Foundry Models with Strider Co-Pilot",
+        "title": "Integrating Azure AI Foundry Models with Nexus Co-Pilot",
         "cat": "How-To Guide",
         "domain": "Enterprise AI",
         "prereq": "Azure AI Studio deployment, API Endpoint URL",
-        "step1": "az ai service account create --name ai-strider-foundry --resource-group rg-ai --kind AIStudio --location eastus2",
+        "step1": "az ai service account create --name ai-nexus-foundry --resource-group rg-ai --kind AIStudio --location eastus2",
         "step2": "curl -X POST $AZURE_FOUNDRY_ENDPOINT/deployments/voyage-context-4/embeddings?api-version=2024-02-01 -H 'api-key: '$AZURE_AI_KEY -H 'Content-Type: application/json' -d '{\"input\":\"test search\"}'",
-        "verify": "python test_strider_copilot.py --endpoint=$AZURE_FOUNDRY_ENDPOINT",
+        "verify": "python test_nexus_copilot.py --endpoint=$AZURE_FOUNDRY_ENDPOINT",
         "err": "DeploymentNotFound",
         "sol": "Verify deployment name matches model name in Azure AI Studio."
     },
@@ -168,9 +168,9 @@ ARTICLES_DATA = [
         "cat": "How-To Guide",
         "domain": "Access Control",
         "prereq": "Atlas Project Owner role",
-        "step1": "curl -X POST https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/databaseUsers -d '{\"roles\":[{\"roleName\":\"readWrite\",\"databaseName\":\"kbase\"}],\"username\":\"app_strider\",\"password\":\"$DB_PASS\"}'",
-        "step2": "mongosh \"mongodb+srv://app_strider:$DB_PASS@kbase.private.mindsbeyond.com/kbase\"",
-        "verify": "mongosh $MONGODB_URI --eval 'db.getUser(\"app_strider\")'",
+        "step1": "curl -X POST https://cloud.mongodb.com/api/atlas/v2/groups/$ATLAS_PROJECT_ID/databaseUsers -d '{\"roles\":[{\"roleName\":\"readWrite\",\"databaseName\":\"kbase\"}],\"username\":\"app_nexus\",\"password\":\"$DB_PASS\"}'",
+        "step2": "mongosh \"mongodb+srv://app_nexus:$DB_PASS@kbase.private.mindsbeyond.com/kbase\"",
+        "verify": "mongosh $MONGODB_URI --eval 'db.getUser(\"app_nexus\")'",
         "err": "MongoServerError: Authentication Failed",
         "sol": "Check if database user was created under admin database namespace."
     },
@@ -252,7 +252,7 @@ UNIQUE_MODULES = [
     ("Zero-Downtime Migration Procedures", "Database Admin", "mongodump --oplog", "mongorestore --oplogReplay"),
     ("Custom Reranking with Voyage AI Reranker", "AI Search", "rerank_pipeline.py", "vo.rerank(query, docs)"),
     ("Network Peering Between Azure and Atlas", "Networking", "az network vnet peering create", "az network vnet peering show"),
-    ("Strider Copilot Custom Tool Plugins", "Enterprise AI", "strider-plugin build", "strider-plugin test"),
+    ("Nexus Copilot Custom Tool Plugins", "Enterprise AI", "nexus-plugin build", "nexus-plugin test"),
     ("Database Audit Logging to Azure Blob", "Compliance", "az storage blob upload", "az storage container list"),
     ("Atlas Search Synonym Ingestion", "Search Architecture", "import_synonyms.py", "db.content.aggregate([{$search:...}])"),
     ("Kafka Schema Registry Enforcement", "Event Streaming", "schema-registry-cli register", "schema-registry-cli check"),
@@ -266,7 +266,7 @@ UNIQUE_MODULES = [
     ("End-to-End RAG Testing for KBase Agents", "AI Validation", "pytest test_rag_accuracy.py", "python eval_metrics.py"),
     ("Databricks Lakehouse Sink Configuration", "Lakehouse Ops", "spark-submit sink_job.py", "databricks runs get"),
     ("Graph Queries in Neo4j Agent Skills", "Graph Analytics", "cypher-shell MATCH (n) RETURN n", "python test_graph_agent.py"),
-    ("Strider RAG Knowledgebase Tooling", "Agent Frameworks", "strider-agent register-tool", "strider-agent test-tool"),
+    ("Nexus RAG Knowledgebase Tooling", "Agent Frameworks", "nexus-agent register-tool", "nexus-agent test-tool"),
     ("Database Backup Validation Workflows", "Disaster Recovery", "atlas backups snapshots list", "atlas backups restore start"),
     ("Multi-Tenant Index Partitioning", "Index Tuning", "create_partition_idx.py", "db.content.getIndexes()"),
     ("Atlas Search Custom Analyzer Tuning", "Search Tuning", "apply_analyzer_config.py", "db.content.aggregate([{$search:...}])"),
@@ -378,7 +378,7 @@ Expected outcome: Command completes without errors and returns expected resource
 ## Related Documentation
 - [MongoDB Atlas Administration Guide](https://docs.atlas.mongodb.com/)
 - [Mindsbeyond Data Platform Wiki](https://wiki.mindsbeyond.com/data-platform)
-- [Strider Co-Pilot Documentation](https://strider.mindsbeyond.com/docs)
+- [Nexus Co-Pilot Documentation](https://nexus.mindsbeyond.com/docs)
 
 ---
 
