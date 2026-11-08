@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Unit tests with coverage gate
+        # All Atlas, HTTP and LLM calls are mocked. Live checks run in live-smoke.yml.
+        env:
+          KBASE_MODE: offline
+        run: pytest --cov --cov-report=term-missing

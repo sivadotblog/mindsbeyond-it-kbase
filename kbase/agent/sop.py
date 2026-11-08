@@ -44,6 +44,10 @@ def _step(id_: str, kind: str, actor: str, title: str, *, command: str | None = 
             "guidance": [], "output": output}
 
 
+def _count(n: int, word: str) -> str:
+    return f"{n} {word}" + ("" if n == 1 else "s")
+
+
 def _var_key(name: str) -> str:
     return label_key(name.replace("_", " ")) or ""
 
@@ -95,7 +99,8 @@ def build_checklist(article: dict[str, Any], *, hits: list[MemoryHit] | None = N
         episodes = [h for h in hits if h.record.type == "episodic"]
         steps.append(_step(
             "agent-memory", "agent", "agent", "Check memory for notes, facts and past runs",
-            output=f"{len(notes)} notes on this procedure, {len(facts)} facts, {len(episodes)} past runs.",
+            output=f"{_count(len(notes), 'note')} on this procedure, {_count(len(facts), 'fact')}, "
+                   f"{_count(len(episodes), 'past run')}.",
             status="done",
         ))
 

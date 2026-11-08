@@ -122,6 +122,7 @@ class Container:
             "memory_backends": self.memory_backends,
             "default_memory_backend": self.default_memory_backend,
             "memory_errors": self.memory_errors,
+            "memory_weights": list(self.settings.memory_weights),
             "runs_store": self.runs.name,
             "index": {"text": self.index.text_index, "vector": self.index.vector_index,
                       "path": self.index.vector_path, "query_format": self.index.query_format,

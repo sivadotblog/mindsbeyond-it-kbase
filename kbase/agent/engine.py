@@ -40,6 +40,7 @@ _CHANGES = re.compile(r"\b(apply|create|update|delete|destroy|install|register|s
                       re.I)
 _READS = re.compile(r"\b(show|list|get|status|plan|view|test|check|verify|tail|describe|stats|eval)\b|-X\s+GET",
                     re.I)
+_CURL_WRITE = re.compile(r"\s(-d|-F|-T|--data\S*|--form|--upload-file)\b")
 READ_TOOLS = frozenset({"nc", "nslookup", "dig", "echo", "cat", "ls", "ping"})
 _VAR = re.compile(r"\$\{?([A-Z][A-Z0-9_]*)\}?")
 
@@ -59,7 +60,7 @@ def explain_command(command: str) -> str:
         name = TOOL_NAMES.get(tool, f"the {tool} command" if tool else "a command")
         if _CHANGES.search(line):
             effect = "changes state"
-        elif tool in READ_TOOLS or _READS.search(line):
+        elif tool in READ_TOOLS or _READS.search(line) or (tool == "curl" and not _CURL_WRITE.search(line)):
             effect = "reads state"
         else:
             effect = "effect not obvious, read it before running"
@@ -74,6 +75,19 @@ def explain_command(command: str) -> str:
             parts.append("Needs " + ", ".join(f"${v}" for v in secret)
                          + " from your secret store. The agent never sees or fills these.")
     return " ".join(parts)
+
+
+def _tool_title(name: str, args: dict[str, Any], result: Any) -> str:
+    if name == "search_kb":
+        how = result.get("method") or "no method worked"
+        if result.get("reranked"):
+            how += " + rerank"
+        return f"Searched the knowledge base ({how}) for: {str(args.get('query', ''))[:80]}"
+    if name == "get_article":
+        return f"Read article {args.get('doc_id')}"
+    if name == "related_articles":
+        return f"Looked up related articles in {args.get('domain')}"
+    return f"Ran {name}"
 
 
 @dataclass(frozen=True)
@@ -141,7 +155,7 @@ class AgentEngine:
             detail["result"] = result[:5]
         else:
             detail["result"] = result
-        trace.add(kind, f"{name}", detail, ms=ms)
+        trace.add(kind, _tool_title(name, args, result), detail, ms=ms)
         return result
 
     # -- memory ----------------------------------------------------------------

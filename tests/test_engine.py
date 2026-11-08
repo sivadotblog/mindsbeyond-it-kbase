@@ -40,6 +40,10 @@ class TestExplain:
     def test_unknown_tool(self):
         assert "the foo command" in explain_command("foo --bar")
 
+    def test_curl_defaults_to_read(self):
+        assert "reads state" in explain_command("curl https://x/clusters/$C")
+        assert "not obvious" in explain_command("curl -H a https://x --data-raw y")
+
     def test_variables(self):
         out = explain_command('curl -u "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" https://x/$ORG_ID')
         assert "$ORG_ID set in your shell" in out and "never sees or fills" in out

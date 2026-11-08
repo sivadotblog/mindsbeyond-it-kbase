@@ -1,0 +1,102 @@
+name: live-smoke
+
+# Manual run against the real Atlas cluster.
+#
+# Uses the Atlas service account stored in the repository:
+#   vars.MDB_CLIENT     service account client id (mdb_sa_id_...)
+#   secrets.MDB_SECRET  service account client secret
+# A service account reaches only the Atlas Administration API, so this job creates a temporary
+# database user and a temporary IP access list entry for the runner, both with deleteAfterDate,
+# runs the checks, and deletes both in an always-run step.
+#
+# Optional repository variables: ATLAS_PROJECT_ID, ATLAS_CLUSTER_NAME, DB_NAME,
+# AGENTIC_MEMORY_PROJECT_ID (also checks Atlas Agent Engine memory), LLM_PROVIDER.
+# Optional secret: LLM_API_KEY.
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: "Atlas project id (blank: vars.ATLAS_PROJECT_ID, else discover)"
+        required: false
+        default: ""
+      cluster_name:
+        description: "Cluster name (blank: vars.ATLAS_CLUSTER_NAME, else discover)"
+        required: false
+        default: ""
+      seed:
+        description: "Seed the 50 articles and build the KB indexes first"
+        type: boolean
+        default: true
+      ttl_hours:
+        description: "Hours before the temporary user and access entry expire on their own"
+        required: false
+        default: "2"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MDB_CLIENT: ${{ vars.MDB_CLIENT }}
+      MDB_SECRET: ${{ secrets.MDB_SECRET }}
+      ATLAS_PROJECT_ID: ${{ inputs.project_id || vars.ATLAS_PROJECT_ID }}
+      ATLAS_CLUSTER_NAME: ${{ inputs.cluster_name || vars.ATLAS_CLUSTER_NAME }}
+      DB_NAME: ${{ vars.DB_NAME || 'kbase' }}
+      AGENTIC_MEMORY_PROJECT_ID: ${{ vars.AGENTIC_MEMORY_PROJECT_ID }}
+      LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'offline' }}
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      KBASE_MODE: atlas
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -e .
+          if [ -n "$AGENTIC_MEMORY_PROJECT_ID" ]; then pip install -e ".[agent-engine]"; fi
+
+      - name: Check credentials are configured
+        run: |
+          if [ -z "$MDB_CLIENT" ] || [ -z "$MDB_SECRET" ]; then
+            echo "::error::Set repository variable MDB_CLIENT and secret MDB_SECRET"
+            exit 1
+          fi
+
+      - name: Grant temporary Atlas access
+        # Writes MONGODB_URI (password masked) and the resolved project and cluster to $GITHUB_ENV.
+        run: |
+          python -m kbase.atlas_admin grant \
+            --ttl-hours "${{ inputs.ttl_hours }}" \
+            --github-env "$GITHUB_ENV"
+
+      - name: Seed data and build indexes
+        if: ${{ inputs.seed }}
+        run: python -m kbase.smoke setup --wait 600
+
+      - name: Build memory indexes
+        if: ${{ !inputs.seed }}
+        run: python -m kbase.smoke setup --skip-seed --wait 300
+
+      - name: Run smoke checks
+        run: python -m kbase.smoke run --report smoke-report.md
+
+      - name: Job summary
+        if: always()
+        run: |
+          if [ -f smoke-report.md ]; then cat smoke-report.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Revoke temporary access
+        if: always()
+        run: python -m kbase.atlas_admin revoke

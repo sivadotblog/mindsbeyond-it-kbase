@@ -33,8 +33,12 @@ task           string   redacted
 status         "choosing" | "no_match" | "in_progress" | "completed" | "abandoned"
 created_at, updated_at   datetime (UTC)
 search         { method, query, candidates: [ {doc_id, title, score, norm_score} ] }
-procedure      { doc_id, title, reason, chosen_by: "agent" | "user" } | null
+memory_backend string | null          memory backend used for this run
+llm            string                 "offline" or the provider name
+procedure      { doc_id, title, domain, reason, chosen_by: "agent" | "user", troubleshooting } | null
 recalled       [ MemoryHit ]          memories used when planning
+recall_pipeline, recall_strategy      how memory was recalled (Atlas backend shows the pipeline)
+learned        [ {label, value} ]     facts stated during the run, saved on finish
 checklist      [ ChecklistStep ]
 messages       [ { role, content, at } ]   redacted
 trace          [ TraceEvent ]

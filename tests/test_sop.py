@@ -65,7 +65,7 @@ class TestChecklist:
         hits = [hit(), hit(type="procedural", label="KB-0020:step-1", content="note",
                            source={"doc_id": "KB-0020", "step_id": "step-1"}), hit(type="episodic", label="r")]
         out = build_checklist(article(), hits=hits)[1]["output"]
-        assert out == "1 notes on this procedure, 1 facts, 1 past runs."
+        assert out == "1 note on this procedure, 1 fact, 1 past run."
 
 
 class TestHints:

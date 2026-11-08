@@ -1,6 +1,6 @@
 # Implementation Plan: Atlas Search Lab, SOP Agent and Agent Memory
 
-**Branch**: `feat/atlas-search-agent-lab` | **Date**: 2026-11-08 | **Spec**: [spec.md](./spec.md)
+**Branch**: `feat/atlas-search-lab-sop-agent-memory` | **Date**: 2026-11-08 | **Spec**: [spec.md](./spec.md)
 
 **Input**: Feature specification from `/specs/001-atlas-search-agent-lab/spec.md`
 

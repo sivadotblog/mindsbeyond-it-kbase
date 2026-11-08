@@ -1,6 +1,6 @@
 # Feature Specification: Atlas Search Lab, SOP Agent and Agent Memory
 
-**Feature Branch**: `feat/atlas-search-agent-lab`
+**Feature Branch**: `feat/atlas-search-lab-sop-agent-memory`
 
 **Created**: 2026-11-08
 

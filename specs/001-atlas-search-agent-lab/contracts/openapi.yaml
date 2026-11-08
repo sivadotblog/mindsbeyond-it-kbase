@@ -26,6 +26,19 @@ paths:
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Capabilities"}
+  /api/v2/facets:
+    get:
+      summary: Category and domain values for the filter pickers
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  category: {type: array, items: {type: string}}
+                  domain: {type: array, items: {type: string}}
   /api/v2/search/methods:
     get:
       summary: Available search methods with parameters and requirements
@@ -170,6 +183,11 @@ paths:
             schema: {$ref: "#/components/schemas/MemoryWrite"}
       responses:
         "201": {description: Written, with the consolidation decision}
+  /api/v2/memory/backends:
+    get:
+      summary: Configured memory backends, which one is default, and their status
+      responses:
+        "200": {description: OK}
   /api/v2/memory/search:
     post:
       summary: Recall memories with score parts
@@ -213,6 +231,10 @@ components:
         llm: {type: string}
         memory_backends: {type: array, items: {type: string}}
         default_memory_backend: {type: string}
+        memory_errors: {type: object, additionalProperties: {type: string}}
+        memory_weights: {type: array, items: {type: number}, minItems: 3, maxItems: 3}
+        runs_store: {type: string}
+        index: {type: object}
     Capabilities:
       type: object
       properties:
