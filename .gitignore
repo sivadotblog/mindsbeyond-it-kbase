@@ -38,3 +38,11 @@ terraform/.terraform.lock.hcl
 # OS
 .DS_Store
 Thumbs.db
+
+# Live smoke workflow artifacts
+.atlas-access.json
+smoke-report.md
+
+# Packaging
+*.egg-info/
+build/

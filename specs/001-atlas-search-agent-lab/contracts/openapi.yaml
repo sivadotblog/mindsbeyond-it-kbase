@@ -1,0 +1,315 @@
+openapi: 3.1.0
+info:
+  title: Mindsbeyond KB Lab API
+  version: 2.0.0
+  description: >
+    v2 endpoints for the Search Lab, the SOP agent and agent memory. All responses are JSON.
+    Errors use {"error": "<message>", "code": "<code>"} with an HTTP 4xx or 5xx status.
+servers:
+  - url: http://localhost:5001
+paths:
+  /api/v2/health:
+    get:
+      summary: Mode, LLM provider and memory backends in use
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Health"}
+  /api/v2/capabilities:
+    get:
+      summary: What the connected cluster supports
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Capabilities"}
+  /api/v2/facets:
+    get:
+      summary: Category and domain values for the filter pickers
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  category: {type: array, items: {type: string}}
+                  domain: {type: array, items: {type: string}}
+  /api/v2/search/methods:
+    get:
+      summary: Available search methods with parameters and requirements
+      responses:
+        "200":
+          description: OK
+  /api/v2/search:
+    post:
+      summary: Run one search method
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SearchRequest"}
+      responses:
+        "200":
+          description: Result, including unsupported methods with a reason
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SearchResult"}
+        "400": {description: Invalid request}
+  /api/v2/search/compare:
+    post:
+      summary: Run several methods for one query and measure agreement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SearchRequest"
+                - type: object
+                  properties:
+                    methods: {type: array, items: {type: string}, minItems: 1, maxItems: 8}
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CompareResult"}
+        "400": {description: Invalid request}
+  /api/v2/agent/runs:
+    get:
+      summary: List runs for a user
+      parameters:
+        - {name: user_id, in: query, required: true, schema: {type: string}}
+      responses:
+        "200": {description: OK}
+    post:
+      summary: Start an SOP run for a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [task, user_id]
+              properties:
+                task: {type: string, minLength: 3, maxLength: 1000}
+                user_id: {type: string}
+                memory_backend: {type: string}
+      responses:
+        "201":
+          description: Run created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Run"}
+        "400": {description: Invalid request}
+  /api/v2/agent/runs/{run_id}:
+    get:
+      summary: Get a run
+      parameters:
+        - {name: run_id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: OK}
+        "404": {description: Not found}
+  /api/v2/agent/runs/{run_id}/choose:
+    post:
+      summary: Pick a different procedure for the run
+      parameters:
+        - {name: run_id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object, required: [doc_id], properties: {doc_id: {type: string}}}
+      responses:
+        "200": {description: Updated run}
+  /api/v2/agent/runs/{run_id}/steps/{step_id}:
+    post:
+      summary: Confirm a human step
+      parameters:
+        - {name: run_id, in: path, required: true, schema: {type: string}}
+        - {name: step_id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: {type: string, enum: [done, failed, skipped]}
+                note: {type: string, maxLength: 2000}
+      responses:
+        "200": {description: Updated run}
+        "400": {description: Invalid status or agent step}
+        "404": {description: Run or step not found}
+  /api/v2/agent/runs/{run_id}/messages:
+    post:
+      summary: Tell the agent something during a run
+      parameters:
+        - {name: run_id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [content], properties: {content: {type: string, maxLength: 2000}}}
+      responses:
+        "200": {description: Updated run with the agent reply in messages}
+  /api/v2/agent/runs/{run_id}/finish:
+    post:
+      summary: Finish a run, write the summary and consolidate memory
+      parameters:
+        - {name: run_id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Finished run}
+  /api/v2/memory:
+    get:
+      summary: List memories
+      parameters:
+        - {name: user_id, in: query, required: true, schema: {type: string}}
+        - {name: type, in: query, schema: {type: string}}
+        - {name: backend, in: query, schema: {type: string}}
+      responses:
+        "200": {description: OK}
+    post:
+      summary: Write a memory (consolidated)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/MemoryWrite"}
+      responses:
+        "201": {description: Written, with the consolidation decision}
+  /api/v2/memory/backends:
+    get:
+      summary: Configured memory backends, which one is default, and their status
+      responses:
+        "200": {description: OK}
+  /api/v2/memory/search:
+    post:
+      summary: Recall memories with score parts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query, user_id]
+              properties:
+                query: {type: string}
+                user_id: {type: string}
+                types: {type: array, items: {type: string}}
+                limit: {type: integer, minimum: 1, maximum: 50}
+                backend: {type: string}
+      responses:
+        "200": {description: OK}
+  /api/v2/memory/{memory_id}:
+    delete:
+      summary: Delete a memory owned by the user
+      parameters:
+        - {name: memory_id, in: path, required: true, schema: {type: string}}
+        - {name: user_id, in: query, required: true, schema: {type: string}}
+        - {name: backend, in: query, schema: {type: string}}
+      responses:
+        "200": {description: Deleted}
+        "404": {description: Not found}
+        "501": {description: Backend does not support delete}
+  /api/v2/memory/setup:
+    post:
+      summary: Create memory collection indexes (Atlas backend)
+      responses:
+        "200": {description: Steps performed}
+components:
+  schemas:
+    Health:
+      type: object
+      properties:
+        mode: {type: string, enum: [atlas, offline]}
+        llm: {type: string}
+        memory_backends: {type: array, items: {type: string}}
+        default_memory_backend: {type: string}
+        memory_errors: {type: object, additionalProperties: {type: string}}
+        memory_weights: {type: array, items: {type: number}, minItems: 3, maxItems: 3}
+        runs_store: {type: string}
+        index: {type: object}
+    Capabilities:
+      type: object
+      properties:
+        mode: {type: string}
+        server_version: {type: [string, "null"]}
+        indexes: {type: array, items: {type: object}}
+        methods:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              available: {type: boolean}
+              reason: {type: [string, "null"]}
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query: {type: string, minLength: 1, maxLength: 1000}
+        method: {type: string, enum: [fulltext, vector_ann, vector_enn, vector_filtered, hybrid_rrf, hybrid_score]}
+        limit: {type: integer, minimum: 1, maximum: 50}
+        num_candidates: {type: integer, minimum: 1, maximum: 10000}
+        query_model: {type: string, enum: [voyage-4-lite, voyage-4, voyage-4-large]}
+        filters:
+          type: object
+          properties:
+            category: {type: string}
+            domain: {type: string}
+        weights:
+          type: object
+          properties:
+            vector: {type: number, minimum: 0}
+            text: {type: number, minimum: 0}
+        normalization: {type: string, enum: [none, sigmoid, minMaxScaler]}
+        rerank: {type: boolean}
+        rerank_model: {type: string}
+        fuzzy: {type: boolean}
+    SearchResult:
+      type: object
+      properties:
+        method: {type: string}
+        label: {type: string}
+        status: {type: string, enum: [ok, unsupported, error]}
+        reason: {type: [string, "null"]}
+        offline: {type: boolean}
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              rank: {type: integer}
+              doc_id: {type: string}
+              title: {type: string}
+              score: {type: number}
+              pre_rerank_rank: {type: [integer, "null"]}
+              rank_change: {type: [integer, "null"]}
+        pipeline: {type: array, items: {type: object}}
+        ms: {type: number}
+        warnings: {type: array, items: {type: string}}
+    CompareResult:
+      type: object
+      properties:
+        query: {type: string}
+        results: {type: object, additionalProperties: {$ref: "#/components/schemas/SearchResult"}}
+        agreement: {type: object}
+    Run:
+      type: object
+      description: See data-model.md, agent_runs.
+    MemoryWrite:
+      type: object
+      required: [type, content, user_id]
+      properties:
+        type: {type: string, enum: [stm, episodic, semantic, procedural, taxonomic]}
+        content: {type: string, maxLength: 4000}
+        label: {type: string}
+        user_id: {type: string}
+        visibility: {type: string, enum: [private, org]}
+        importance: {type: number, minimum: 0, maximum: 1}
+        backend: {type: string}

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mindsbeyond KB Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/lab.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Mindsbeyond KB Lab <span>on Atlas</span></h1>
+    <div class="status" id="status" aria-live="polite">Connecting…</div>
+    <label class="who">User id <input type="text" id="user" value="siva" autocomplete="off" spellcheck="false"></label>
+    <a class="back" href="/">Articles and admin</a>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" aria-controls="tab-search" id="t-search">Search lab</button>
+    <button role="tab" aria-selected="false" aria-controls="tab-sop" id="t-sop">SOP agent</button>
+    <button role="tab" aria-selected="false" aria-controls="tab-memory" id="t-memory">Memory</button>
+  </nav>
+
+  <main>
+    <!-- Search lab ------------------------------------------------------------>
+    <section class="tab" id="tab-search" role="tabpanel" aria-labelledby="t-search">
+      <p class="lede">Run one question through several Atlas retrieval methods at once. Each column shows the
+        ranked articles, scores, time and the exact pipeline. The river shows where the methods agree.</p>
+      <form class="querybar" id="search-form">
+        <input type="search" id="q" value="private endpoint connection timeout" aria-label="Search question" maxlength="1000">
+        <button class="primary" type="submit" id="compare-btn">Compare methods</button>
+      </form>
+      <div class="chips" id="method-chips" aria-label="Methods to compare"></div>
+      <details class="options">
+        <summary>Options: results, query model, rerank, filters, fusion</summary>
+        <div class="optgrid">
+          <label>Results per method <input type="number" id="o-limit" value="8" min="1" max="50"></label>
+          <label>Query embedding model
+            <select id="o-model">
+              <option value="voyage-4-lite">voyage-4-lite (default)</option>
+              <option value="voyage-4">voyage-4</option>
+              <option value="voyage-4-large">voyage-4-large</option>
+            </select>
+            <span class="hint">Any voyage-4 model can query a voyage-4 index.</span>
+          </label>
+          <label>ANN candidates <input type="number" id="o-cands" placeholder="20 × results" min="1" max="10000"></label>
+          <label class="check"><input type="checkbox" id="o-rerank"> Rerank with $rerank</label>
+          <label>Rerank model
+            <select id="o-rmodel">
+              <option value="rerank-2.5-lite">rerank-2.5-lite</option>
+              <option value="rerank-2.5">rerank-2.5</option>
+              <option value="rerank-3-lite">rerank-3-lite (9.0+, dedicated)</option>
+              <option value="rerank-3">rerank-3 (9.0+, dedicated)</option>
+            </select>
+          </label>
+          <label class="check"><input type="checkbox" id="o-fuzzy"> Fuzzy full text</label>
+          <label>Category filter <select id="o-cat"><option value="">Any</option></select></label>
+          <label>Domain filter <select id="o-dom"><option value="">Any</option></select></label>
+          <label>Vector weight <input type="number" id="o-wv" value="1" min="0" step="0.5"></label>
+          <label>Text weight <input type="number" id="o-wt" value="1" min="0" step="0.5"></label>
+          <label>Score fusion normalization
+            <select id="o-norm">
+              <option value="sigmoid">sigmoid</option>
+              <option value="minMaxScaler">minMaxScaler</option>
+              <option value="none">none</option>
+            </select>
+          </label>
+        </div>
+      </details>
+      <div id="search-out"><p class="empty">Pick methods and press Compare methods. Try "port 10260 refused"
+        to see full text win on an exact number, or "keep my cloud bill tagged" to see vector search find
+        the chargeback article without shared words.</p></div>
+    </section>
+
+    <!-- SOP agent ------------------------------------------------------------->
+    <section class="tab" id="tab-sop" role="tabpanel" aria-labelledby="t-sop" hidden>
+      <p class="lede">Describe a task. The agent finds the procedure with hybrid search and rerank, builds a
+        checklist, does the read only steps itself and waits for you on anything that runs a command or
+        needs a credential. It never asks for secrets.</p>
+      <div class="sop">
+        <div>
+          <div class="panel">
+            <form class="taskbar" id="task-form">
+              <input type="text" id="task" placeholder="What do you need to do?" aria-label="Task" maxlength="1000">
+              <button class="primary" type="submit" id="start-btn">Start run</button>
+            </form>
+            <div class="examples">Try:
+              <button type="button" data-task="private endpoint connection keeps timing out">private endpoint timeouts</button>
+              <button type="button" data-task="rotate the kbase ingest service account key">rotate a service account key</button>
+              <button type="button" data-task="scale the cluster to M30">scale the cluster</button>
+            </div>
+          </div>
+          <div id="run-out"></div>
+        </div>
+        <aside>
+          <div class="panel chat" id="chat" hidden>
+            <h2>Tell the agent</h2>
+            <div class="log" id="chat-log" aria-live="polite"></div>
+            <form id="chat-form">
+              <input type="text" id="chat-in" placeholder="Our cluster is kbase-prod" aria-label="Message to the agent" maxlength="2000">
+              <button class="plain" type="submit">Send</button>
+            </form>
+            <p class="hint">Facts you state are saved to memory when you finish the run.</p>
+          </div>
+          <div class="panel" id="runs-panel">
+            <h2>Your runs</h2>
+            <div id="runs-list" class="hint">No runs yet.</div>
+          </div>
+          <div class="panel" id="trace-panel" hidden>
+            <h2>Trace <small>every read, decision and write, in order</small></h2>
+            <ol class="trace" id="trace"></ol>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Memory ---------------------------------------------------------------->
+    <section class="tab" id="tab-memory" role="tabpanel" aria-labelledby="t-memory" hidden>
+      <p class="lede">What the agent remembers for this user: short term turns, episodes of past runs,
+        facts, procedure notes and domain terms. Search to see how each memory scores.</p>
+      <div class="membar">
+        <label>Backend <select id="m-backend"></select></label>
+        <label>Type
+          <select id="m-type">
+            <option value="">All types</option>
+            <option value="stm">Short term</option>
+            <option value="episodic">Episodic</option>
+            <option value="semantic">Semantic</option>
+            <option value="procedural">Procedural</option>
+            <option value="taxonomic">Taxonomic</option>
+          </select>
+        </label>
+        <form class="grow" id="m-search-form"><label>Recall <input type="search" id="m-q" placeholder="What should the agent recall?"></label></form>
+        <button class="plain" type="button" id="m-list">List</button>
+        <button class="plain" type="button" id="m-setup">Set up memory indexes</button>
+      </div>
+      <div id="m-backend-info" class="hint"></div>
+      <div id="mem-out"></div>
+      <details class="panel" id="m-add">
+        <summary>Add a memory by hand</summary>
+        <form class="addmem" id="m-add-form">
+          <label>Type
+            <select id="a-type">
+              <option value="semantic">Semantic fact</option>
+              <option value="procedural">Procedure note</option>
+              <option value="taxonomic">Domain term</option>
+              <option value="episodic">Episode</option>
+            </select>
+          </label>
+          <label>Label <input type="text" id="a-label" placeholder="cluster"></label>
+          <label>Importance <input type="number" id="a-imp" value="0.7" min="0" max="1" step="0.1"></label>
+          <label>Visibility
+            <select id="a-vis"><option value="private">Only this user</option><option value="org">Everyone in the project</option></select>
+          </label>
+          <label class="wide">Content <textarea id="a-content" rows="2" maxlength="4000" placeholder="cluster = kbase-prod"></textarea></label>
+          <div><button class="primary" type="submit">Save memory</button></div>
+        </form>
+      </details>
+    </section>
+  </main>
+
+  <script src="/lab.js"></script>
+</body>
+</html>
