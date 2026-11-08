@@ -97,6 +97,10 @@ SEARCH_INDEX_DEFINITION = {
     }
 }
 
+# The hybrid endpoint must target the full-text index that is actually created above.
+# (It used to name "content_search_index", which is never created, so hybrid was vector only.)
+TEXT_INDEX_NAME = os.getenv("KBASE_TEXT_INDEX", SEARCH_INDEX_DEFINITION["name"])
+
 # Auto-embedding vector search index using Voyage AI
 # Using voyage-4 (recommended for balanced performance)
 VECTOR_INDEX_DEFINITION = {
@@ -274,6 +278,10 @@ def create_app(testing: bool = False) -> Flask:
     """Create and configure the Flask application."""
     app = Flask(__name__, static_folder="static", static_url_path="")
     app.config["TESTING"] = testing
+
+    # v2: Search Lab, SOP agent and agent memory (see specs/001-atlas-search-agent-lab)
+    from kbase.api import bp as kbase_v2
+    app.register_blueprint(kbase_v2)
 
     @app.route("/api/articles", methods=["GET"])
     def list_articles():
@@ -481,7 +489,7 @@ def create_app(testing: bool = False) -> Flask:
                                 "textSearch": [
                                     {
                                         "$search": {
-                                            "index": "content_search_index",
+                                            "index": TEXT_INDEX_NAME,
                                             "text": {
                                                 "query": query,
                                                 "path": ["title", "raw_markdown"]

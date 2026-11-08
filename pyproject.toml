@@ -1,10 +1,15 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "mindsbeyond-it-kbase"
-version = "0.1.0"
-description = "Mindsbeyond IT Knowledge Base Generator"
-requires-python = ">=3.10"
+version = "0.2.0"
+description = "Mindsbeyond IT Knowledge Base: Atlas Search Lab, SOP agent and agent memory"
+requires-python = ">=3.11"
 dependencies = [
-    "pymongo>=4.0.0",
+    "flask>=3.0",
+    "pymongo>=4.13",
     "python-dotenv>=1.0.0",
     "requests>=2.28.0",
 ]
@@ -15,6 +20,15 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
 ]
+agent-engine = [
+    "agent-engine-sdk-memory>=0.11",
+]
+
+[tool.setuptools]
+py-modules = ["app", "generate_kbase"]
+
+[tool.setuptools.packages.find]
+include = ["kbase*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -28,7 +42,7 @@ markers = [
 
 [tool.coverage.run]
 source = ["."]
-omit = ["tests/*", "venv/*", ".venv/*"]
+omit = ["tests/*", "venv/*", ".venv/*", ".specify/*", ".claude/*"]
 
 [tool.coverage.report]
 fail_under = 80
